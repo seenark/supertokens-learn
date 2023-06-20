@@ -53,6 +53,12 @@ export default component$(() => {
         >
           need session
         </Link>
+        <Link
+          href="/need-email-verified"
+          class="border border-purple-300 px-4 py-2 rounded"
+        >
+          need verified email
+        </Link>
       </div>
     </>
   );

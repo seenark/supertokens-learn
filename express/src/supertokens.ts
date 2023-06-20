@@ -7,6 +7,7 @@ import { middleware, errorHandler } from "supertokens-node/framework/express";
 import Session from "supertokens-node/recipe/session";
 import Dashboard from "supertokens-node/recipe/dashboard";
 import { verifySession } from "supertokens-node/recipe/session/framework/express";
+import UserRoles from "supertokens-node/recipe/userroles";
 
 export function setupSuperToken() {
   let { Google } = ThirdPartyEmailPassword;
@@ -25,6 +26,50 @@ export function setupSuperToken() {
     },
     recipeList: [
       ThirdPartyEmailPassword.init({
+        signUpFeature: {
+          formFields: [
+            {
+              id: "firstname",
+            },
+            {
+              id: "dob",
+              optional: true,
+            },
+          ],
+        },
+        override: {
+          apis: (originalImplementation) => {
+            return {
+              ...originalImplementation,
+              emailPasswordSignUpPOST: async (input) => {
+                if (
+                  originalImplementation.emailPasswordSignUpPOST === undefined
+                ) {
+                  throw Error("Should never come here");
+                }
+
+                // First we call the original implementation
+                let response =
+                  await originalImplementation.emailPasswordSignUpPOST(input);
+
+                // If sign up was successful
+                if (response.status === "OK") {
+                  // We can get the form fields from the input like this
+                  let formFields = input.formFields;
+                  let user = response.user;
+                  const userid = user.id;
+                  console.log("supertokens create user: ", userid, formFields);
+                  // save other fields into our database
+                  // ...
+                  const addRole = await UserRoles.addRoleToUser(userid, "user");
+                  console.log("add role: ", addRole);
+                }
+
+                return response;
+              },
+            };
+          },
+        },
         providers: [
           Google({
             clientId:
@@ -32,6 +77,10 @@ export function setupSuperToken() {
             clientSecret: "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",
           }),
         ],
+      }),
+      UserRoles.init({
+        skipAddingRolesToAccessToken: false,
+        skipAddingPermissionsToAccessToken: false,
       }),
       EmailVerification.init({
         mode: "REQUIRED", // or "OPTIONAL"

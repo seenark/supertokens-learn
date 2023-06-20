@@ -1,6 +1,7 @@
 import SuperTokens from "supertokens-web-js";
 import Session from "supertokens-web-js/recipe/session";
 import ThirdPartyEmailPassword from "supertokens-web-js/recipe/thirdpartyemailpassword";
+import EmailVerification from "supertokens-web-js/recipe/emailverification";
 
 export function setupSuperTokens() {
   SuperTokens.init({
@@ -9,7 +10,11 @@ export function setupSuperTokens() {
       apiBasePath: "/auth",
       appName: "learn-supertoken",
     },
-    recipeList: [Session.init(), ThirdPartyEmailPassword.init()],
+    recipeList: [
+      EmailVerification.init(),
+      Session.init(),
+      ThirdPartyEmailPassword.init(),
+    ],
   });
 
   console.log("supertokens init");

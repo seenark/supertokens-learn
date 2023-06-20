@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Link } from "react-router-dom";
+import { BrowserRouter, Routes } from "react-router-dom";
 import * as reactRouterDom from "react-router-dom";
 
 import SuperTokens, {
@@ -19,6 +19,7 @@ import { EmailVerificationPreBuiltUI } from "supertokens-auth-react/recipe/email
 import { ThirdPartyEmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/thirdpartyemailpassword/prebuiltui";
 import Session from "supertokens-auth-react/recipe/session";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
+import { UserRoleClaim } from "supertokens-auth-react/recipe/userroles";
 
 import "./App.css";
 
@@ -33,6 +34,31 @@ SuperTokens.init({
   recipeList: [
     Thirdpartyemailpassword.init({
       signInAndUpFeature: {
+        signUpForm: {
+          formFields: [
+            {
+              id: "email",
+              label: "email label",
+              placeholder: "email placeholder",
+            },
+            {
+              id: "firstname",
+              label: "Firstname",
+              placeholder: "Firstname",
+              validate: async (value) => {
+                console.log("firstname", value);
+                return undefined;
+              },
+            },
+            {
+              id: "dob",
+              label: "Date of birth",
+              placeholder: "dd/mm/yyyy",
+              optional: true,
+            },
+          ],
+        },
+
         providers: [
           Google.init(),
           Apple.init(),
@@ -67,6 +93,23 @@ function App() {
     })();
   }, []);
 
+  function User() {
+    const claimValue = Session.useClaimValue(UserRoleClaim);
+    console.log("claimValue", claimValue);
+    if (claimValue.loading || claimValue.doesSessionExist === false) {
+      return <div>you are not logged in</div>;
+    }
+    const roles = claimValue.value;
+    if (!Array.isArray(roles) || !roles.includes("user")) {
+      return <div>you don't has role user</div>;
+    }
+    return (
+      <>
+        <div>user has 'user' role</div>
+      </>
+    );
+  }
+
   function toAuthPath() {
     redirectToAuth({
       show: "signin",
@@ -83,6 +126,7 @@ function App() {
             EmailVerificationPreBuiltUI,
           ])}
         </Routes>
+        <User />
         <button onClick={toAuthPath}>Sign in</button>
         <button onClick={onSignOut}>sign out</button>
       </BrowserRouter>
